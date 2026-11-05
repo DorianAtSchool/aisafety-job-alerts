@@ -100,7 +100,7 @@ function page(title: string, body: string, opts: PageOpts = {}): Response {
 <title>${esc(title)}</title><style>${CSS}</style></head><body>
 <header class="top"><div class="${wrap}"><a class="brand" href="${opts.token ? `/manage/${opts.token}` : "/"}"><span class="mark"></span><span class="name">AI Safety Job Alerts</span></a><nav>${nav}</nav></div></header>
 <main><div class="${wrap}">${body}</div></main>
-<footer><div class="${wrap}">Jobs come from <a href="https://aisafety.com/jobs">AISafety.com</a> (CC BY 4.0). This is a side project, not run by them.</div></footer>
+<footer><div class="${wrap}">Jobs come from <a href="https://aisafety.com/jobs">AISafety.com</a> (CC BY 4.0). This is a side project, not run by them. · <a href="/privacy">Privacy</a></div></footer>
 </body></html>`,
     { headers: { "content-type": "text/html; charset=utf-8" } },
   );
@@ -142,7 +142,7 @@ function signupForm(action: string, button: string, siteKey?: string): string {
     : "";
   return `<form method="post" action="${action}" class="row">
   <input type="email" name="email" required placeholder="you@example.com" style="flex:1;min-width:220px" autocomplete="email" aria-label="Email address">
-  <button class="btn">${button}</button>${turnstile}</form>`;
+  <button class="btn">${button}</button>${turnstile}</form>${siteKey ? `<p class="small muted" style="margin:8px 0 0">Protected by Cloudflare Turnstile. See our <a href="/privacy">privacy page</a>.</p>` : ""}`;
 }
 
 export function homePage(signupAllowed: boolean, jobCount: number, siteKey?: string): Response {
@@ -368,6 +368,30 @@ export function sharePage(search: Search, matches: ApiJob[], recent: number, sig
     }</div></aside>
 </div>`,
     { wide: true },
+  );
+}
+
+export function privacyPage(): Response {
+  return page(
+    "Privacy",
+    `<h1>Privacy</h1>
+<p class="lead">Short version: we keep your email and your filters so we can send you job alerts, and nothing else. No ads, no tracking, no selling data.</p>
+<div class="card stack">
+<h3>What we store</h3>
+<ul style="margin:0;padding-left:20px">
+<li>Your email address, and when you signed up and confirmed it</li>
+<li>Your saved searches and the jobs on your shortlist</li>
+<li>Which jobs we've already emailed you, so you don't get them twice</li>
+</ul>
+<h3 style="margin-top:20px">Who handles it</h3>
+<ul style="margin:0;padding-left:20px">
+<li><strong>Cloudflare</strong> hosts the site and the database (Cloudflare Workers and D1), and keeps short-lived server logs.</li>
+<li><strong>Gmail</strong> sends the emails from aisafetyjobs@gmail.com, so copies of sent emails sit in that account's Sent folder.</li>
+<li><strong>Cloudflare Turnstile</strong> checks that sign-ups come from people, not bots. It's covered by Cloudflare's <a href="https://www.cloudflare.com/turnstile-privacy-policy/" target="_blank" rel="noopener">Turnstile Privacy Addendum</a>.</li>
+</ul>
+<h3 style="margin-top:20px">Getting rid of it</h3>
+<p style="margin:0">Unsubscribing (there's a link in every email) deletes your email, searches, shortlist and history right away. Questions? Write to <a href="mailto:aisafetyjobs@gmail.com">aisafetyjobs@gmail.com</a>.</p>
+</div>`,
   );
 }
 

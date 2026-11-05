@@ -5,3 +5,5 @@ BASE_URL=http://localhost:8787
 # MAIL_MODE=gmail
 # GMAIL_USER=you@gmail.com
 # GMAIL_APP_PASSWORD=abcd efgh ijkl mnop
+# The real Turnstile widget only works on the live domain; keep it off locally.
+TURNSTILE_SITE_KEY=

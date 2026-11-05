@@ -24,6 +24,7 @@ import {
   managePage,
   messagePage,
   outboxPage,
+  privacyPage,
   savePage,
   searchEditorPage,
   sharePage,
@@ -148,6 +149,8 @@ async function handle(req: Request, env: Env): Promise<Response> {
   }
 
   if (path === "/subscribe" && method === "POST") return subscribe(req, env);
+
+  if (path === "/privacy" && method === "GET") return privacyPage();
 
   if (path === "/link") {
     if (method === "GET") return lostLinkPage(env.TURNSTILE_SITE_KEY);
