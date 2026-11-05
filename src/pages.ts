@@ -76,7 +76,9 @@ input:focus,.btn:focus-visible{outline:none;border-color:var(--accent);box-shado
 .job .o{font-size:14px;margin-top:2px}.job .o span{color:var(--muted)}
 .job .d{font-size:12px;color:var(--muted);margin-top:8px}
 .badge{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;background:var(--bg);border:1px solid var(--border);color:var(--muted);vertical-align:2px;margin-left:6px}
-@media (max-width:820px){.editor{grid-template-columns:minmax(0,1fr)}.side{position:static}@media (max-width:520px){.job{flex-wrap:wrap}main{padding:28px 0 40px}h1{font-size:24px}.list>.item{flex-direction:column;align-items:flex-start}`;
+@media (max-width:820px){.editor{grid-template-columns:minmax(0,1fr)}.side{position:static}.share .side{order:-1}}
+@media (max-width:520px){.job{flex-wrap:wrap}main{padding:28px 0 40px}h1{font-size:24px}.list>.item{flex-direction:column;align-items:flex-start}.brand{font-size:14px;gap:8px}nav{gap:0}nav a{padding:6px 8px;font-size:13px}}
+`;
 
 type NavKey = "alerts" | "shortlist";
 
@@ -85,7 +87,11 @@ interface PageOpts {
   /** Subscriber token: shows "Your alerts" and "Shortlist" in the header. */
   token?: string;
   active?: NavKey;
+  /** One-line summary for link previews (WhatsApp, Slack, iMessage…) and search results. */
+  description?: string;
 }
+
+const DEFAULT_DESCRIPTION = "Get a short email when new AI safety jobs that match your filters go up on AISafety.com/jobs.";
 
 function page(title: string, body: string, opts: PageOpts = {}): Response {
   const wrap = opts.wide ? "wrap wide" : "wrap";
@@ -97,7 +103,14 @@ function page(title: string, body: string, opts: PageOpts = {}): Response {
   ].join("");
   return new Response(
     `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>${esc(title)}</title><style>${CSS}</style></head><body>
+<title>${esc(title)}</title>
+<meta name="description" content="${esc(opts.description ?? DEFAULT_DESCRIPTION)}">
+<meta property="og:site_name" content="AI Safety Job Alerts">
+<meta property="og:title" content="${esc(title)}">
+<meta property="og:description" content="${esc(opts.description ?? DEFAULT_DESCRIPTION)}">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
+<style>${CSS}</style></head><body>
 <header class="top"><div class="${wrap}"><a class="brand" href="${opts.token ? `/manage/${opts.token}` : "/"}"><span class="mark"></span><span class="name">AI Safety Job Alerts</span></a><nav>${nav}</nav></div></header>
 <main><div class="${wrap}">${body}</div></main>
 <footer><div class="${wrap}">Jobs come from <a href="https://aisafety.com/jobs">AISafety.com</a> (CC BY 4.0). This is a side project, not run by them. · <a href="/privacy">Privacy</a></div></footer>
@@ -370,7 +383,7 @@ export function sharePage(search: Search, matches: ApiJob[], recent: number, sig
     `<p class="small muted" style="margin:0 0 6px">Someone shared a job search with you</p>
 <h1>${esc(search.name)}</h1>
 <p class="lead">${esc(describeFilters(search.filters))}</p>
-<div class="editor" style="grid-template-columns:minmax(0,1fr) 300px">
+<div class="editor share">
 <div class="card list" style="padding:0">${
       matches.length
         ? matches.slice(0, 6).map((j) => jobItem(j)).join("")
@@ -386,7 +399,10 @@ export function sharePage(search: Search, matches: ApiJob[], recent: number, sig
         : `<p style="margin:0" class="muted">Sign-ups are closed for now.</p>`
     }</div></aside>
 </div>`,
-    { wide: true },
+    {
+      wide: true,
+      description: `${matches.length} open AI safety job${matches.length === 1 ? "" : "s"} matching ${describeFilters(search.filters)}. Get new ones by email.`,
+    },
   );
 }
 
