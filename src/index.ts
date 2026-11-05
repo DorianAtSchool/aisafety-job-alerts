@@ -87,6 +87,9 @@ async function subscribe(req: Request, env: Env, share?: string): Promise<Respon
   const done = messagePage("Check your email", `<p style="margin:0">If sign-ups are open for that address, a confirmation link is on its way.</p>`);
   if (!signupAllowed(env, email)) return done;
   const sub = await upsertSubscriber(env.DB, email, Date.now());
+  // Already confirmed: nothing to send. The page looks the same either way, so the form doesn't
+  // reveal who's subscribed. (A shared-search sign-up still emails: confirming adds that search.)
+  if (sub.confirmed_at !== null && !share) return done;
   const confirmPath = `/confirm/${sub.token}${share ? `?share=${encodeURIComponent(share)}` : ""}`;
   const mailer = createMailer(env);
   try {
