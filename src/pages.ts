@@ -137,8 +137,27 @@ export function messagePage(title: string, html: string, opts: PageOpts = {}): R
 /** Sign-up form; with a Turnstile site key it includes Cloudflare's bot check (usually invisible). */
 function signupForm(action: string, button: string, siteKey?: string): string {
   const turnstile = siteKey
-    ? `<div class="cf-turnstile" data-sitekey="${esc(siteKey)}" data-theme="auto" data-size="flexible" style="width:100%"></div>
-<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>`
+    ? `<div class="cf-turnstile" data-sitekey="${esc(siteKey)}" data-theme="auto" data-size="flexible" data-refresh-expired="auto" style="width:100%"></div>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+<script>
+// The invisible check needs a moment after page load, and its token expires after ~5 min.
+// If someone submits before a fresh token exists, wait for it instead of failing on the server.
+document.currentScript.closest('form').addEventListener('submit', function (e) {
+  var form = this;
+  // Turnstile adds this hidden field itself once it loads, so look it up fresh each time.
+  var token = function () { var f = form.querySelector('[name="cf-turnstile-response"]'); return f && f.value; };
+  if (token()) return;
+  e.preventDefault();
+  var btn = form.querySelector('button'), label = btn.textContent, waited = 0;
+  btn.disabled = true; btn.textContent = 'One sec…';
+  if (window.turnstile) try { turnstile.reset(form.querySelector('.cf-turnstile')); } catch (_) {}
+  var t = setInterval(function () {
+    waited += 250;
+    if (token()) { clearInterval(t); form.submit(); }
+    else if (waited > 10000) { clearInterval(t); btn.disabled = false; btn.textContent = label; form.submit(); }
+  }, 250);
+});
+</script>`
     : "";
   return `<form method="post" action="${action}" class="row">
   <input type="email" name="email" required placeholder="you@example.com" style="flex:1;min-width:220px" autocomplete="email" aria-label="Email address">
