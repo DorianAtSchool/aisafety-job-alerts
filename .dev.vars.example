@@ -1,0 +1,7 @@
+ALLOWED_EMAILS=
+DEV=true
+BASE_URL=http://localhost:8787
+# To send real email locally: MAIL_MODE=gmail plus a Gmail address and app password.
+# MAIL_MODE=gmail
+# GMAIL_USER=you@gmail.com
+# GMAIL_APP_PASSWORD=abcd efgh ijkl mnop

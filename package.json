@@ -1,0 +1,23 @@
+{
+  "name": "aisafety-job-alerts",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --test-scheduled",
+    "db:migrate": "wrangler d1 migrations apply DB --local",
+    "run-daily": "curl -s 'http://localhost:8787/__scheduled?cron=0+9+*+*+*'",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260702.1",
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.12",
+    "wrangler": "^4.86.0"
+  },
+  "dependencies": {
+    "worker-mailer": "^1.3.1"
+  }
+}

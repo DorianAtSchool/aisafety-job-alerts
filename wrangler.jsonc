@@ -1,0 +1,33 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "aisafety-job-alerts",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-10-01",
+  // worker-mailer (Gmail SMTP) needs Node's Buffer etc.
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": { "enabled": true },
+  // Daily digest at 09:00 UTC.
+  "triggers": { "crons": ["0 9 * * *"] },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "aisafety-job-alerts",
+      "database_id": "559e08d3-2e0e-4720-8271-33b8db89718d",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "vars": {
+    // "outbox" stores emails in the DB (viewable at /dev/outbox); "gmail" sends for real.
+    // Secrets (set with `wrangler secret put`): GMAIL_APP_PASSWORD, ADMIN_KEY, ALLOWED_EMAILS
+    // (comma-separated invite list while SIGNUP_OPEN is "false"), ALERT_EMAIL, TURNSTILE_SECRET.
+    // Bot check on sign-up forms: put the Turnstile widget's public site key here.
+    "TURNSTILE_SITE_KEY": "",
+    "MAIL_MODE": "gmail",
+    "GMAIL_USER": "aisafetyjobs@gmail.com",
+    "MAIL_FROM_NAME": "AI Safety Job Alerts",
+    // Public URL used in email links; set to the workers.dev URL after the first deploy.
+    "BASE_URL": "https://aisafety-job-alerts.aisafetyjobsalert.workers.dev",
+    "SIGNUP_OPEN": "false",
+    "MAX_EMAILS_PER_RUN": "400"
+  }
+}
