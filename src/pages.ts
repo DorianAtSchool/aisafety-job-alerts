@@ -156,6 +156,7 @@ export function homePage(signupAllowed: boolean, jobCount: number, siteKey?: str
 <p class="small muted" style="margin:10px 0 0">You'll get a link to confirm, then you pick your filters.</p>`
         : `<p style="margin:0">Sign-ups are closed for now while I test things out.</p>`
     }</div>
+<p class="small muted" style="margin:12px 0 0">Already signed up? <a href="/link">Get your link</a></p>
 <ul class="points">
 <li>Filter by skills, experience, location, degree, org or keywords</li>
 <li>At most one email a day (09:00 UTC), and only when there's something new</li>
@@ -367,6 +368,16 @@ export function sharePage(search: Search, matches: ApiJob[], recent: number, sig
     }</div></aside>
 </div>`,
     { wide: true },
+  );
+}
+
+export function lostLinkPage(siteKey?: string): Response {
+  return page(
+    "Get your link",
+    `<a class="backbtn" href="/">← Home</a>
+<h1>Lost your link?</h1>
+<p class="lead">Enter the email you signed up with and we'll send you the link to your alerts.</p>
+<div class="card">${signupForm("/link", "Email me my link", siteKey)}</div>`,
   );
 }
 

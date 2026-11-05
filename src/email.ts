@@ -171,6 +171,22 @@ ${g.jobs.map((j, k) => jobRow(j, k === 0, links)).join("")}
   };
 }
 
+export function renderManageLink(manageUrl: string): Omit<EmailMessage, "to"> {
+  const subject = "Your AI Safety Job Alerts link";
+  const html = shell(
+    "Here's the link to your alerts.",
+    `<tr><td style="background:${C.surface};border:1px solid ${C.border};border-radius:12px;padding:28px 24px">
+<div style="font-size:22px;line-height:1.25;font-weight:650;letter-spacing:-.02em">Here's your link</div>
+<p style="font-size:15px;line-height:1.55;margin:10px 0 22px">Use it to change your filters, see your shortlist or unsubscribe. Bookmark it this time!</p>
+<a href="${esc(manageUrl)}" style="display:inline-block;background:${C.ink};color:${C.surface};font-size:15px;font-weight:600;padding:11px 20px;border-radius:8px;text-decoration:none">Go to your alerts</a>
+<p style="font-size:13px;line-height:1.5;color:${C.muted};margin:22px 0 0">Didn't ask for this? You can ignore it. Nothing has changed.</p>
+</td></tr>`,
+    ATTRIBUTION_HTML,
+  );
+  const text = `Here's your link: ${manageUrl}\n\nUse it to change your filters, see your shortlist or unsubscribe.\n\nDidn't ask for this? You can ignore it.\n`;
+  return { subject, html, text };
+}
+
 export function renderConfirmation(confirmUrl: string): Omit<EmailMessage, "to"> {
   const subject = "Confirm your email for AI Safety Job Alerts";
   const html = shell(

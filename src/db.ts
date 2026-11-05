@@ -9,6 +9,7 @@ export interface Subscriber {
   token: string;
   created_at: number;
   confirmed_at: number | null;
+  link_sent_at: number | null;
 }
 
 export interface Search {
@@ -94,6 +95,14 @@ export async function upsertSubscriber(db: D1Database, email: string, now: numbe
 
 export async function subscriberByToken(db: D1Database, token: string): Promise<Subscriber | null> {
   return db.prepare("SELECT * FROM subscribers WHERE token = ?").bind(token).first<Subscriber>();
+}
+
+export async function subscriberByEmail(db: D1Database, email: string): Promise<Subscriber | null> {
+  return db.prepare("SELECT * FROM subscribers WHERE email = ?").bind(email).first<Subscriber>();
+}
+
+export async function markLinkSent(db: D1Database, id: number, now: number): Promise<void> {
+  await db.prepare("UPDATE subscribers SET link_sent_at = ? WHERE id = ?").bind(now, id).run();
 }
 
 export async function confirmSubscriber(db: D1Database, id: number, now: number): Promise<void> {

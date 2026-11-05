@@ -4,20 +4,23 @@ import {
   deleteSearch,
   deleteSubscriber,
   jobById,
+  markLinkSent,
   removeFromShortlist,
   saveSearch,
   searchByShareCode,
   searchesFor,
   shortlistFor,
+  subscriberByEmail,
   subscriberByToken,
   upsertSubscriber,
 } from "./db";
-import { esc, renderConfirmation, renderDigest } from "./email";
+import { esc, renderConfirmation, renderDigest, renderManageLink } from "./email";
 import type { Env } from "./env";
 import { createMailer, type Mailer } from "./mailer";
 import { filtersFromForm, matches } from "./match";
 import {
   homePage,
+  lostLinkPage,
   managePage,
   messagePage,
   outboxPage,
@@ -106,6 +109,34 @@ async function subscribe(req: Request, env: Env, share?: string): Promise<Respon
   return done;
 }
 
+const LINK_RESEND_GAP = 10 * 60 * 1000;
+
+/** "Lost your link?": emails the private manage link, but only to confirmed subscribers and at most every 10 minutes. */
+async function sendManageLink(req: Request, env: Env): Promise<Response> {
+  const form = await req.formData();
+  const email = String(form.get("email") ?? "").trim().toLowerCase();
+  const human = await verifyTurnstile(env.TURNSTILE_SECRET, form.get("cf-turnstile-response") as string | null, req.headers.get("cf-connecting-ip"));
+  if (!human) {
+    return messagePage("Quick check failed", `<p style="margin:0">We couldn't confirm you're not a bot. <a href="/link">Try again?</a></p>`);
+  }
+  // Same page whatever happens, so this form can't be used to find out who's subscribed.
+  const done = messagePage("Check your email", `<p style="margin:0">If that address has alerts set up, we've sent it the link.</p>`);
+  const sub = await subscriberByEmail(env.DB, email);
+  const now = Date.now();
+  if (!sub || sub.confirmed_at === null || (sub.link_sent_at !== null && now - sub.link_sent_at < LINK_RESEND_GAP)) return done;
+  const mailer = createMailer(env);
+  try {
+    await mailer.send({ to: sub.email, ...renderManageLink(manageLinks(env, sub.token).manage) });
+  } catch (err) {
+    console.error("manage-link email failed", err);
+    return sendFailedPage();
+  } finally {
+    await mailer.close();
+  }
+  await markLinkSent(env.DB, sub.id, now);
+  return done;
+}
+
 async function handle(req: Request, env: Env): Promise<Response> {
   const url = new URL(req.url);
   const path = url.pathname.replace(/\/$/, "") || "/";
@@ -117,6 +148,11 @@ async function handle(req: Request, env: Env): Promise<Response> {
   }
 
   if (path === "/subscribe" && method === "POST") return subscribe(req, env);
+
+  if (path === "/link") {
+    if (method === "GET") return lostLinkPage(env.TURNSTILE_SITE_KEY);
+    if (method === "POST") return sendManageLink(req, env);
+  }
 
   // Shared searches: /s/<code> shows matches and a sign-up form that copies the search.
   if (parts[0] === "s" && parts.length === 2) {
