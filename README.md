@@ -67,4 +67,4 @@ postings. `/dev/*` routes are off in production (`DEV` is only set in `.dev.vars
 
 ## Not done yet
 
-- Bot protection on the sign-up form before setting `SIGNUP_OPEN=true`.
+- Nothing outstanding; sign-ups are open (`SIGNUP_OPEN=true`) with Turnstile on all sign-up forms.

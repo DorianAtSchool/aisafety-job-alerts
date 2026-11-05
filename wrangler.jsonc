@@ -27,7 +27,7 @@
     "MAIL_FROM_NAME": "AI Safety Job Alerts",
     // Public URL used in email links; set to the workers.dev URL after the first deploy.
     "BASE_URL": "https://aisafety-job-alerts.aisafetyjobsalert.workers.dev",
-    "SIGNUP_OPEN": "false",
+    "SIGNUP_OPEN": "true",
     "MAX_EMAILS_PER_RUN": "400"
   }
 }
